@@ -9,8 +9,8 @@
 * [HOW TO USE NCU-HASS](#HOW-TO-USE-NCU-HASS)
   * [WEBSITE NAVIGATION FLOW](#WEBSITE-NAVIGATION-FLOW)
   * [SCENARIO](#SCENARIO)
-* [HA Admin–HA Clusters Tab](#HA-Admin–HA-Clusters-Tab)
-* [HA Admin-HA Instances Tab & HA Project–HA Instances Tab](#HA-Admin-HA-Instances-Tab-&-HA-Project–HA-Instances-Tab)
+* [HA Clusters Tab](#HA-Clusters-Tab)
+* [HA Instances Tab](#HA-Instances-Tab)
 * [NCU-HASS feature introduction](#NCU-HASS-feature-introduction)
   * [CREATE CLUSTER](#CREATE-CLUSTER)
   * [DELETE CLUSTER](#DELETE-CLUSTER)
@@ -76,8 +76,8 @@ Note : There must be an instance (**test**) and a cluster (**Cluster1**) consist
 
 Figure 3. Scenario
 
-## HA Admin–HA Clusters Tab 
-This page is for administrator to manage HA clusters. The HA cluster is an abstract group used to record protected nodes and instances.
+## HA Clusters Tab 
+The **HA Admin – HA Clusters** Tab is for administrator to manage HA clusters. The HA cluster is an abstract group used to record protected nodes and instances.
 
 ![](picture/HA%20clusters%20page.png)
 
@@ -88,8 +88,8 @@ Figure 4. HA Clusters Page
 3.	Cluster name button	: list of available cluster, directing to computing node page.
 4.	Delete HA Cluster button	: delete cluster.
 
-## HA Admin-HA Instances Tab & HA Project–HA Instances Tab
-Administrators use the HA Admin – HA Instances Tab, and common users use the HA Project – HA Instances Tab. Both pages are used to add / remove protection to the instance. Instance is the smallest unit to be protected by NCU-HASS.
+## HA Instances Tab
+Administrators use the **HA Admin – HA Instances** Tab, and common users use the **HA Project – HA Instances** Tab. Both pages are used to add / remove protection to the instance. Instance is the smallest unit to be protected by NCU-HASS.
 
 ![](picture/HA%20Instance%20page.png)
 
