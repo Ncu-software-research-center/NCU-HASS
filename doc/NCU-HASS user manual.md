@@ -33,7 +33,7 @@ The NCU-HASS dashboard provides other pages, such as HA Cluster and HA Instance,
 
 ### WEBSITE NAVIGATION FLOW
 ![](https://github.com/drliang219/NCU-HASS/blob/master/doc/picture/website%20flow.png)
-![](picture/website flow.png)
+![](picture/website%20flow.png)
 
 
 
