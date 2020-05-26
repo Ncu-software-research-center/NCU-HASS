@@ -3,7 +3,21 @@
 
 ## Table of Contents
 
-[TOC]
+* [GETTING STARTED](#GETTING-STARTED)
+  * [DICTIONARY OF TERMS](#DICTIONARY-OF-TERMS)
+  * [SYSTEM’S GOAL](#SYSTEM’S-GOAL)
+* [HOW TO USE NCU-HASS](#HOW-TO-USE-NCU-HASS)
+  * [WEBSITE NAVIGATION FLOW](#WEBSITE-NAVIGATION-FLOW)
+  * [SCENARIO](#SCENARIO)
+* [HA Admin – HA Clusters Tab](#HA-Admin-–-HA-Clusters-Tab)
+* [HA Admin - HA Instances Tab & HA Project – HA Instances Tab](#HA-Admin---HA-Instances-Tab-&-HA-Project-–-HA-Instances-Tab)
+* [NCU-HASS feature introduction](#NCU-HASS-feature-introduction)
+  * [CREATE CLUSTER](#CREATE-CLUSTER)
+  * [DELETE CLUSTER](#DELETE-CLUSTER)
+  * [ADD COMPUTING NODE](#ADD-COMPUTING-NODE)
+  * [DELETE COMPUTING NODE](#DELETE-COMPUTING-NODE)
+  * [ADD INSTANCE PROTECTION](#ADD-INSTANCE-PROTECTION)
+  * [REMOVE INSTANCE PROTECTION](#REMOVE-INSTANCE-PROTECTION)
 
 ## GETTING STARTED
 Welcome to the NCU-HASS User Manual. This manual will help you learn how to use the NCU-HASS as administrator.
