@@ -4,7 +4,15 @@ NCU-HASS
 
 ## Table of Contents
 
-[TOC]
+* [Description](#Description)
+  * [System Architecture](#System Architecture)
+  * [Requirement](#Requirement)
+* [Installation](#Installation)
+* [Usage](#Usage)
+* [Roadmap](#Roadmap)
+* [Contributing](#Contributing)
+* [License](#License)
+* [Project Status](#Project Status)
 
 ## Description
 NCU-HASS is a fault detection and failover system for OpenSatck, which can improve the availability of OpenStack. In OpenStack, users can run services on virtual machines (instances), so the liveness of virtual machines is an important target to be protected by NCU-HASS. In order to protect the virtual machines running on the physical computing nodes and to improve the availability of OpenStack, NCU-HASS will failover all affected virtual machines to other normal computing nodes after detecting the computing node fault, and then try to recover the failed computing node, that is, restart it. If the unexpected termination of the virtual machine is not due to a computing node fault, NCU-HASS will also detect and recover the failed virtual machine (restart it).
@@ -22,7 +30,7 @@ NCU-HASS will not modify any OpenStack source code, so as long as OpenStack does
 The required hardware / software and tested versions are given below:
 
 Hardware:
-1.	IPMI supproted machines: HP, DELL
+1.	IPMI supproted machines: HP server (DL380 Gen9, ML30 Gen9), DELL server (PowerEdge T130)
 
 Software:
 1.	OS: Ubuntu 16.04
