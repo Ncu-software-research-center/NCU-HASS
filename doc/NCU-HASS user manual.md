@@ -5,12 +5,12 @@
 
 * [GETTING STARTED](#GETTING-STARTED)
   * [DICTIONARY OF TERMS](#DICTIONARY-OF-TERMS)
-  * [SYSTEM’S GOAL](#SYSTEM’S-GOAL)
+  * [SYSTEM GOAL](#SYSTEM-GOAL)
 * [HOW TO USE NCU-HASS](#HOW-TO-USE-NCU-HASS)
   * [WEBSITE NAVIGATION FLOW](#WEBSITE-NAVIGATION-FLOW)
   * [SCENARIO](#SCENARIO)
-* [HA Admin – HA Clusters Tab](#HA-Admin-–-HA-Clusters-Tab)
-* [HA Admin - HA Instances Tab & HA Project – HA Instances Tab](#HA-Admin---HA-Instances-Tab-&-HA-Project-–-HA-Instances-Tab)
+* [HA Admin–HA Clusters Tab](#HA-Admin–HA-Clusters-Tab)
+* [HA Admin-HA Instances Tab & HA Project–HA Instances Tab](#HA-Admin-HA-Instances-Tab-&-HA-Project–HA-Instances-Tab)
 * [NCU-HASS feature introduction](#NCU-HASS-feature-introduction)
   * [CREATE CLUSTER](#CREATE-CLUSTER)
   * [DELETE CLUSTER](#DELETE-CLUSTER)
@@ -36,7 +36,7 @@ To make it easier to find the information you need, the following terms are used
 | 4.  | Computing Node | A host in cluster. |
 | 5.  | Instance       | A virtual machine (VM) that running in computing node. |
 
-### SYSTEM’S GOAL
+### SYSTEM GOAL
 NCU-HASS (NCU-High Availability Service System) is a high availability system based on OpenStack platform to enhance the primary purpose of cloud infrastructure and services. When the failures occurred, the system can detect and recover automatically.
 
 The detection function is responsible for detecting various faults, and the recovery function is responsible for recovery after detecting the fault, so that the instance can continue to run and can reduce downtime.
