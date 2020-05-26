@@ -32,6 +32,7 @@ The detection function is responsible for detecting various faults, and the reco
 The NCU-HASS dashboard provides other pages, such as HA Cluster and HA Instance, which can manage cluster and instance protection to support high availability.
 
 ### WEBSITE NAVIGATION FLOW
+![](https://github.com/drliang219/NCU-HASS/blob/master/doc/picture/website%20flow.png)
 ![](picture/website flow.png)
 
 
