@@ -1,12 +1,44 @@
-# NCU-HASS Installation guide (ver. 4.1)
+# NCU-HASS Installation guide (ver. 4.1) <a id="top"/>
 ###### last updated: `2020/05/28`
 ###### author: `Harry` `ratriabdatush`
 
 ## Table of Contents
-* [OPENSTACK QUEENS](#OPENSTACK-QUEENS)
-  * [Prerequisites](#Prerequisites) 
 
-## 1. OPENSTACK QUEENS
+* [1. OPENSTACK](#openstack)
+  * [Prerequisites](#Prerequisites)
+  * [OpenStack Services](#OpenStack-Services)
+  * [References](#references1)
+* [2. OpenStack Settings](#openstack_settings)
+  * [Network and Subnet](#Network-and-Subnet)
+  * [Security Groups](#Security-Groups)
+  * [Flavor Setting](#Flavor-Setting)
+  * [Instance Setting](#Instance-Setting)
+  * [Volume Setting](#Volume-Setting)
+  * [References](#references2)
+* [3. IPMITOOL](#ipmitool)
+  * [Installation](#Installation)
+  * [Verification](#verification1)
+  * [References](#references3)
+* [4. HASS](#hass)
+  * [Controller node](#Controller-node)
+  * [Compute node](#Compute-node)
+* [5. Watchdog](#watchdog)
+  * [Verification](#verification2)
+* [6. Create your own ubuntu image](#create_image)
+  * [Install Watchdog daemon](#Install-Watchdog-daemon)
+  * [Shrink qcow2 image](#Shrink-qcow2-image)
+  * [Verification](#verification3)
+  * [References](#references4)
+* [7. Enable password-less SSH](#enable_ssh)
+* [8. VM Evacuation Settings](#vm_evacuation_settings)
+  * [Verification](#verification4)
+  * [References](#references5)
+* [Policy (Optional)](#policy)
+  * [References](#references6)
+
+## 1. OPENSTACK <a id="openstack"/>
+
+**version: Queens**
 
 ### Prerequisites
 | Items              |            Controller             |              Compute              |           Blockstorage            |
@@ -34,11 +66,13 @@
 :information_source:
 This version uses Ubuntu 16.04 LTS (desktop/server)
 
-### Reference
+### References <a id="references1"/>
+
 - [OpenStack Queens installations](https://docs.openstack.org/queens/install/)
 
+<a href="#top">:arrow_heading_up: back to top</a>
 
-## OpenStack Setting
+## 2. OpenStack Settings <a id="openstack_settings"/>
 
 ### Network and Subnet
 
@@ -97,19 +131,19 @@ Go to Horizon menu
 $ . admin-openrc
 ```
 
-1. Create flavor 
+#### 1. Create flavor 
 Create flavor named `medium`
 ```
 $ openstack flavor create medium --vcpus 1 --ram 1000 --disk 10 --id 1
 ```
 
-2. Watchdog metadata
+#### 2. Watchdog metadata
 Add metadata `watchdog` 
 ```
 $ openstack flavor set medium --property hw:watchdog_action=none
 ```
 
-3. Verify
+#### 3. Verification
 ```
 $ openstack flavor show medium
 ```
@@ -121,7 +155,7 @@ Create instance from volume. This version only provides live migration for intan
 
 ### Volume Setting
 
-1. Modify **/etc/cinder/cinder.conf** on Controller and Blockstorage
+#### 1. Modify **/etc/cinder/cinder.conf** on Controller and Blockstorage
 
 [DEFAULT]
 
@@ -130,7 +164,7 @@ allowed_direct_url_schemes = cinder
 image_upload_use_cinder_backend = True
 ```
 
-2. Restart cinder service
+#### 2. Restart cinder service
 
 * On Controller
 
@@ -147,10 +181,12 @@ image_upload_use_cinder_backend = True
 # service cinder-volume restart
 ```
 
-### References 
+### References <a id="references2"/>
 * [Configure the Volume-backed image](https://docs.openstack.org/cinder/latest/admin/blockstorage-volume-backed-image.html)
 
-## 2. IPMITOOL
+<a href="#top">:arrow_heading_up: back to top</a>
+
+## 3. IPMITOOL <a id="ipmitool"/>
 
 ### Installation
 - On Controller
@@ -167,7 +203,7 @@ sudo modprobe ipmi_si
 :information_source: 
 On compute node without IPMI, both module `ipmi_devintf` and `ipmi_si` cannot be loaded.
 
-### Verification
+### Verification <a id="verification1"/>
 - On Controller
 ```
 ipmitool -I lanplus -U IPMI_USER -P IPMI_PASSWORD -H IPMI_IP_ADDRESS chassis status
@@ -196,14 +232,14 @@ sudo ipmitool sdr type Temperature
 sudo ipmitool lan print 1
 ```
 
-### Reference
+### References <a id="references3"/>
 - [How to work on IPMI and IPMITOOL](https://community.pivotal.io/s/article/How-to-work-on-IPMI-and-IPMITOOL)
 - [Fun with IPMI](https://blog.bofh.it/id_124)
 - [How to Use IPMItool to Control Power](https://docs.oracle.com/cd/E19273-01/html/821-0243/gixvt.html)
 
+<a href="#top">:arrow_heading_up: back to top</a>
 
-
-## 3. HASS
+## 4. HASS <a id="hass"/>
 - [HASS Source Code](), branch: `HASS-4.1`
 ### Controller node
 #### MySQL
@@ -476,9 +512,9 @@ Check the status of the detectionagent daemon
 sudo service detectionagent status
 ```
 
+<a href="#top">:arrow_heading_up: back to top</a>
 
-
-# 4. Watchdog - On Physical Machine with IPMI
+## 5. Watchdog - On Physical Machine with IPMI <a id="watchdog"/>
 
 ### Installation
 
@@ -524,11 +560,11 @@ ipmi_si
 :information_source: 
 On compute node without IPMI, you can install `softdog` and use `modprobe softdog` to make watchdog working. But `softdog` cannot be probed on boot up even if added in `/etc/modules`.
 
-#### Reference
+#### References
 
 [watchdog service is not working because /dev/watchdog does not exist](https://serverfault.com/questions/638064/watchdog-service-is-not-working-because-dev-watchdog-does-not-exist)
 
-### Verification
+### Verification <a id="verification2"/>
 
 ```
 sudo reboot
@@ -559,10 +595,14 @@ Present Countdown:      59 sec
 ```
 If you do it a few times, you will see the countdown being reset regularly by the daemon.
 
-#### Reference
+#### References
 [Setup the Hardware Watchdog Timer on Ubuntu 12.04](https://github.com/miniwark/miniwark-howtos/blob/master/setup_the_hardware_watchdog_timer_on-ubuntu_12.04.md)
 
-## 5. Create your own ubuntu image
+ 
+<a href="#top">:arrow_heading_up: back to top</a>
+
+
+## 6. Create your own ubuntu image <a id="create_image"/>
 For creating our image using on openstack, follow instruction below and install `clout-init`.
 https://docs.openstack.org/image-guide/ubuntu-image.html
 
@@ -640,7 +680,7 @@ There is a comparison of image between with and without compression
 -rw-r--r-- 1 root root   686M  05:40 ubuntuWithCompression.qcow2
 ```
 
-### Verification
+### Verification <a id="verification3"/>
 Create a flavor with metadata `hw:watchdog_action`
 ![](https://i.imgur.com/shvxsZR.png)
 
@@ -669,13 +709,15 @@ For example:
 ![](https://i.imgur.com/cagCH9y.jpg)
 
 
-### reference
+### references <a id="references4"/>
 - https://blog.csdn.net/somehow1002/article/details/78702742
 - https://serverfault.com/questions/432119/is-there-any-way-to-shrink-qcow2-image-without-converting-it-raw
 - [How to upload a volume to an image which is in 'in-use' status](
 https://access.redhat.com/solutions/3211471)
 
-## 6. Enable password-less SSH
+<a href="#top">:arrow_heading_up: back to top</a>
+
+## 7. Enable password-less SSH <a id="enable_ssh"/>
 Enable password-less SSH so that root on one compute host can log on to any other compute host without providing a password. The libvirtd daemon, which runs as `root`, uses the SSH protocol to copy the instance to the destination and can't know the passwords of all compute hosts.
 
 ```
@@ -711,7 +753,9 @@ For running HASS testcase script, you should deploy that file to each compute ho
 **Reference**
 - [Configure SSH between compute nodes](https://docs.openstack.org/nova/rocky/admin/ssh-configuration.html)
 
-## 7. VM Evacuation Settings
+<a href="#top">:arrow_heading_up: back to top</a>
+
+## 8. VM Evacuation Settings <a id="vm_evacuation_settings"/>
 Since NCU-HASS will evacuate the VM for failover, we need to enable VM evacuation
 
 For each computing node, modify the `libvirtd.conf` and `libvirtd` file
@@ -732,7 +776,7 @@ auth_tcp = "none"
 # modify
 libvirtd_opts="-l"
 ```
-### Verification
+### Verification <a id="verification4"/>
 After restart Libvirtd, Libvirt is listening on port 16509.
 ```bash
 root@compute1:~# sudo systemctl restart libvirtd
@@ -853,7 +897,7 @@ openstack server migrate --live [host] [server]
 >Reference: 
 >- [Specify the CPU model of KVM guests](https://docs.openstack.org/mitaka/config-reference/compute/hypervisor-kvm.html)
 
-### Reference
+### References <a id="references5"/>
 - [libvirt-bin.conf file missing](https://askubuntu.com/questions/932098/libvirt-bin-conf-file-missing)
 - [How to Migrate an Instance with Zero Downtime: OpenStack Live Migration with KVM Hypervisor and NFS Shared Storage](https://www.mirantis.com/blog/tutorial-openstack-live-migration-with-kvm-hypervisor-and-nfs-shared-storage/)
 - [Libvirt daemon is not listening on tcp ports although configured to](https://wiki.libvirt.org/page/Libvirt_daemon_is_not_listening_on_tcp_ports_although_configured_to)
@@ -865,10 +909,11 @@ openstack server migrate --live [host] [server]
 >When using Horizon, on the `Live Migrate` panel,
 >* if the instance is boot from image, then `Block Migration` must be selected. 
 >* if the instance is boot from volume, then `Block Migration` must not be selected.
-:::
+
+<a href="#top">:arrow_heading_up: back to top</a>
 
 
-## Policy (Optional)
+## Policy (Optional) <a id="policy"/>
 Modify `/etc/nova/policy.json` to allow account expect admin can:
 1. determine which host instance launch on and migrate to.
 2. see host which instance running on
@@ -884,5 +929,7 @@ with openstack api
 }                                                                                                                                        
 ```
 
-### Reference 
+### References <a id="references6"></a>
 - [Policies](https://docs.openstack.org/security-guide/identity/policies.html)
+
+<a href="#top">:arrow_heading_up: back to top</a>
