@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load i18n sizeformat %}
+{% block title %}{% trans "IPMI-based Nodes" %}{% endblock %}
+
+{% block main %}
+  <div id="IPMI-Temp">
+      {{ IPMI_Temp_table.render }}
+  </div>
+
+  <div id="IPMI_Vole">
+      {{ IPMI_Volt_table.render }}
+  </div>
+{% endblock %}
+

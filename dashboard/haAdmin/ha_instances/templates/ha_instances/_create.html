@@ -1,0 +1,22 @@
+{% extends "horizon/common/_modal_form.html" %}
+{% load i18n %}
+{% load url from future %}
+
+{% block form_id %}add_instance_to_protection_form{% endblock %}
+{% block form_action %}{% url 'horizon:haAdmin:ha_instances:add_to_protection' %}{% endblock %}
+
+{% block modal_id %}add_instance_to_protection_modal{% endblock %}
+{% block modal-header %}{% trans "Add Instance to protection" %}{% endblock %}
+
+{% block modal-body %}
+<div class="left">
+    <fieldset>
+        {% include "horizon/common/_form_fields.html" %}
+    </fieldset>
+</div>
+<div class="right">
+    <h3>{% trans "Description:" %}</h3>
+    <p>{% trans "Add an instance to protection."%}</p>
+</div>
+{% endblock %}
+

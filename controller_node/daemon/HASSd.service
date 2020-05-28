@@ -1,0 +1,15 @@
+[Unit]
+Description=HASS
+After=libvirt-bin.service
+
+[Service]
+WorkingDirectory=/mnt/drbd/HASS/
+ExecStart=/usr/bin/python Hass.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+# systemctl daemon-reload
+# systemctl enable HASSd.service
+# systemctl start HASSd

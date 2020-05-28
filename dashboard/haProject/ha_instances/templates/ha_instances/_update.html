@@ -1,0 +1,9 @@
+{% extends "horizon/common/_modal_form.html" %}
+{% load i18n %}
+
+{% block modal-body-right %}
+  <h3>{% trans "Description:" %}</h3>
+  <p>{% blocktrans trimmed %}
+  "You may update the protection of your instance here."
+  {% endblocktrans %}</p>
+{% endblock %}
