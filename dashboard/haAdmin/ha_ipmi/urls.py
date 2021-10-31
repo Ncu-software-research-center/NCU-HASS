@@ -1,4 +1,4 @@
-from django.conf.urls import patterns
+#from django.conf.urls import patterns
 from django.conf.urls import url
 
 from openstack_dashboard.dashboards.haAdmin.ha_ipmi.views \
@@ -10,8 +10,8 @@ from openstack_dashboard.dashboards.haAdmin.ha_ipmi.views \
 #from openstack_dashboard.dashboards.haAdmin.ha_ipmi.views \
 #    import AddView
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [#patterns(
+    #'',
     url(r'^$', IndexView.as_view(), name='index'),
     url(r'^(?P<node_id>[^/]+)/$',
         DetailView.as_view(), name='detail'),
@@ -19,4 +19,5 @@ urlpatterns = patterns(
     #url(INSTANCES % 'update',
         #UpdateView.as_view(),
         #name='update'), 
-)
+#)
+]

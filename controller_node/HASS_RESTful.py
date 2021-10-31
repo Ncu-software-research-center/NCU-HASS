@@ -1,11 +1,3 @@
-#########################################################
-#Copyright (c) 2020-present, drliang219
-#All rights reserved.
-#
-#This source code is licensed under the BSD-style license found in the
-#LICENSE file in the root directory of this source tree. 
-##########################################################
-
 from functools import wraps
 from flask import Flask
 from flask import request
@@ -79,11 +71,14 @@ class RESTfulThread(threading.Thread):
   @requires_auth
   def create_cluster():
     if not request.json or \
-      "cluster_name" not in request.json or "node_list" not in request.json:
+      "cluster_name" not in request.json or "node_list" not in request.json or "layers_string" not in request.json:
         abort(400)
     cluster_name = request.json["cluster_name"]
     node_name_list = request.json["node_list"]
-    res = HASS.create_cluster(cluster_name, node_name_list)
+    layers_string = request.json["layers_string"]
+    logging.info("cluster_name: {}, layer_string: {}".format(cluster_name, layers_string))
+    #layers_string = "1111111"
+    res = HASS.create_cluster(cluster_name, node_name_list, layers_string)
     return _convert_res_to_JSON(res)
 
   @app.route("/HASS/api/cluster", methods=['DELETE'])
@@ -163,6 +158,18 @@ class RESTfulThread(threading.Thread):
     res = HASS.delete_instance(cluster_name, instance_id)
     return _convert_res_to_JSON(res)
 
+  @app.route("/HASS/api/instance", methods=['PUT'])
+  @requires_auth
+  def update_instance_host():
+    if not request.json or \
+      "cluster_name" not in request.json or \
+      "instance_id" not in request.json:
+        abort(400)
+    cluster_name = request.json["cluster_name"]
+    instance_id = request.json["instance_id"]
+    res = HASS.update_instance_host(cluster_name, instance_id)
+    return _convert_res_to_JSON(res)
+
   @app.route("/HASS/api/instances/<string:cluster_name>", methods=['GET'])
   @requires_auth
   def list_instance(cluster_name):
@@ -197,7 +204,7 @@ class RESTfulThread(threading.Thread):
 
 def main():
     config = ConfigParser.RawConfigParser()
-    config.read('hass.conf')
+    config.read('/etc/hass.conf')
 
     log_level = logging.getLevelName(config.get("log", "level"))
     log_file_name = config.get("log", "location")
@@ -205,12 +212,13 @@ def main():
     if not os.path.exists(dir):
         os.makedirs(dir)
     logging.basicConfig(filename=log_file_name, level=log_level, format="%(asctime)s [%(levelname)s] : %(message)s")
+    logging.info("-- Preparing HASS --")
     HASS = Hass()
 
     rest_thread = RESTfulThread(HASS)
     rest_thread.daemon = True
     rest_thread.start()
-
+    logging.info("HASS Server ready")
     print "HASS Server ready"
     try:
         while True:

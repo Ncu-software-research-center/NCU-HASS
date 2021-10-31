@@ -4,8 +4,6 @@ from django.core import urlresolvers
 
 from django import shortcuts
 
-from horizon.utils import filters
-
 from horizon import tables
 from horizon import messages
 
@@ -61,7 +59,8 @@ class DeleteComputingNode(tables.DeleteAction):
 
 
     def handle(self, table, request, obj_ids):
-	authUrl = "http://user:0928759204@127.0.0.1:61209"	
+	authUrl = "http://user:0928759204@127.0.0.1:61209"
+        #server = xmlrpclib.ServerProxy(authUrl)	
 	cluster_name = self.table.kwargs["cluster_name"]
 	node_names = []
 	for obj_id in obj_ids:

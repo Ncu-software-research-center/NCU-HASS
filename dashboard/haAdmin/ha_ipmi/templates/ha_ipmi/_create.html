@@ -1,6 +1,5 @@
 {% extends "horizon/common/_modal_form.html" %}
 {% load i18n %}
-{% load url from future %}
 
 {% block form_id %}add_instance_to_protection_form{% endblock %}
 {% block form_action %}{% url 'horizon:haAdmin:ha_instances:add_to_protection' %}{% endblock %}

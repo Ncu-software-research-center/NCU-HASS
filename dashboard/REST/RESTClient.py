@@ -27,8 +27,8 @@ class RESTClient(object):
 			RESTClient()
 		return RESTClient._instance
 
-	def create_cluster(self, name, node_list=[]):
-		data = {"cluster_name": name, "node_list":node_list}
+	def create_cluster(self, name, node_list=[], layers_string="111"):
+		data = {"cluster_name": name, "node_list":node_list, "layers_string":layers_string}
 		return self._get_HASS_response("/HASS/api/cluster", "POST", data)
 		
 

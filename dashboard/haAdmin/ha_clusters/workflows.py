@@ -21,6 +21,10 @@ from django.core import urlresolvers
 
 from openstack_dashboard import api
 
+import xmlrpclib
+import re
+import logging
+
 from openstack_dashboard.REST.RESTClient import RESTClient
 server = RESTClient.get_instance()
 
@@ -151,6 +155,75 @@ class AddComputingNodesToHAClusterStep(workflows.UpdateMembersStep):
             context['computing_nodes'] = data.get(member_field_name, [])
         return context
 
+class SelectLayerAction(workflows.MembershipAction):
+    def __init__(self, request, *args, **kwargs):
+        super(SelectLayerAction, self).__init__(request, *args, **kwargs)
+
+        layer_option_list = [('1', 'Power'),
+                          ('2', 'Hardware'),
+                          ('3', 'OS'),
+                          ('4', 'Network'),
+                          ('5', 'VM process'),
+                          ('6', 'Guest OS'),
+                          ('7', 'VM network'),]
+
+        super(SelectLayerAction, self).__init__(request, *args, **kwargs)
+
+        default_role_field_name = self.get_default_role_field_name()
+        self.fields[default_role_field_name] = forms.CharField(required=False)
+        self.fields[default_role_field_name].initial = 'member'
+
+        field_name = self.get_member_field_name('member')
+        self.fields[field_name] = forms.MultipleChoiceField(required=False)
+        self.fields[field_name].choices = layer_option_list
+
+
+    class Meta(object):
+            name = _("Layer Option")
+
+class SelectLayerStep(workflows.UpdateMembersStep):
+    action_class = SelectLayerAction
+    show_roles = False
+    help_text = _("Select layer that you want to be detected in selected host. If no layers are selected, all layers will be choosen by default.")
+    available_list_title = _("All Layers")
+    members_list_title = _("Selected Layers")
+    no_members_text = _("No Layer Selected.")
+    contributes = ("layers",)
+
+    def contribute(self, data, context):
+        if data:
+            member_field_name = self.get_member_field_name('member')
+            context['layers'] = data.get(member_field_name, [])
+        return context
+
+class SetLayerOptionAction(workflows.Action):
+    vm_network = forms.BooleanField(label=_("VM Network Layer"),required=False, initial=True, help_text = 'This is mandatory layer, automatically selected')
+    guest_os = forms.BooleanField(label=_("Guest OS Layer"),required=False, initial=True)
+    vm_process = forms.BooleanField(label=_("VM Process Layer"),required=False, initial=True)
+    network = forms.BooleanField(label=_("Network Layer"),required=False, initial=True, help_text = 'This is mandatory layer, automatically selected')
+    os = forms.BooleanField(label=_("OS Layer"),required=False, initial=True)
+    hardware = forms.BooleanField(label=_("Hardware Layer"),required=False, initial=True)
+    power = forms.BooleanField(label=_("Power Layer"),required=False, initial=True)
+
+    vm_network.widget.attrs['disabled'] = True
+    network.widget.attrs['disabled'] = True
+
+    class Meta(object):
+        name = _("Layer Option")
+        help_text = _("Select the layer that you want to be detected in selected host")
+
+    def clean(self):
+        layer_data = super(SetLayerOptionAction, self).clean()
+        # logging.error(layer_data)
+        layer_data['vm_network'] = True
+        layer_data['network'] = True
+        return layer_data
+
+
+class SetLayerOptionStep(workflows.Step):
+    action_class = SetLayerOptionAction
+    contributes = ('power', 'hardware', 'os', 'network', 'vm_process', 'guest_os', 'vm_network',)
+
 class CreateHAClusterWorkflow(workflows.Workflow):
     slug = "create_ha_cluster"
     name = _("Create HA Cluster")
@@ -158,15 +231,24 @@ class CreateHAClusterWorkflow(workflows.Workflow):
     success_message = _('Created new HA cluster "%s".')
     failure_message = _('Unable to create HA cluster "%s".')
     success_url = "horizon:haAdmin:ha_clusters:index"
-    default_steps = (SetHAClusterInfoStep, AddHostsToHAClusterStep)
+    default_steps = (SetHAClusterInfoStep, AddHostsToHAClusterStep, SetLayerOptionStep)
 
     def handle(self, request, context):
+        # logging.error(context)
     	context_computing_nodes = context['computing_nodes']
     	name = context['name']
+        context_layer = [context['power'],context['hardware'],context['os'],context['network'],context['vm_process'],context['guest_os'],context['vm_network']]
+        layers_string = ''
+        for layer in context_layer:
+            if layer == True :
+                layers_string += '1'
+            else :
+                layers_string += '0'
     	node_list = []
+        # logging.error(layers_string)
     	for node in context_computing_nodes:
     	    node_list.append(node)
-        result = server.create_cluster(name, node_list)
+        result = server.create_cluster(name, node_list, layers_string)
     	if 'overlapping node' in result["message"] or result["code"] == "failed":
     	    self.failure_message = result["message"]
     	    return False

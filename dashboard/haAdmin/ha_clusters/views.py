@@ -3,14 +3,13 @@ from django.utils.translation import ugettext_lazy as _
 from horizon import tables
 from horizon import workflows
 
-
-from openstack_dashboard import api
-
 from openstack_dashboard.dashboards.haAdmin.ha_clusters import tables as project_tables
 from openstack_dashboard.dashboards.haAdmin.ha_clusters \
     import workflows as ha_cluster_workflows
 
 from openstack_dashboard.REST.RESTClient import RESTClient
+
+from horizon import exceptions
 
 server = RESTClient.get_instance()
 

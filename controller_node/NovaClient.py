@@ -2,12 +2,6 @@
 # -*- coding: utf-8 -*-
 
 #############################################################
-#Copyright (c) 2020-present, drliang219
-#All rights reserved.
-#
-#This source code is licensed under the BSD-style license found in the
-#LICENSE file in the root directory of this source tree. 
-#
 #:Date: 2017/12/13
 #:Version: 1
 #:Authors:
@@ -78,8 +72,8 @@ class NovaClient(object):
     def _get_host_list(self):
         return NovaClient._helper.hypervisors.list()
 
-    def _get_vm(self, id):
-        return NovaClient._helper.servers.get(id)
+    def _get_vm(self, instance_id):
+        return NovaClient._helper.servers.get(instance_id)
 
     def _get_volumes(self, id):
         return NovaClient._helper.volumes.get_server_volumes(id)
@@ -132,7 +126,6 @@ class NovaClient(object):
             return False
         return True
 
-    
 
     def is_instance_boot_from_volume(self, instance_id):
         volume = self._get_volumes(instance_id)
@@ -142,7 +135,6 @@ class NovaClient(object):
         return True
 
     
-
     def _nova_service_up(self, node):
         return NovaClient._helper.services.force_down(node.name, "nova-compute", False)
 
@@ -162,6 +154,25 @@ class NovaClient(object):
         else:
             NovaClient._helper.servers.evacuate(openstack_instance, target_node.name, force=True)
         self._nova_service_up(fail_node)
+
+    def get_instance_external_network(self, instance_ip):
+        external_ip = self.config.get("openstack", "openstack_external_network_gateway_ip").split(".")
+        external_ip = external_ip[0:-1]
+        check_ip = instance_ip.split(".")
+        if all(x in check_ip for x in external_ip):
+            return instance_ip
+        return None    
+
+    def hard_reboot_instance(self, instance_id):
+        try:
+            instance = self._get_vm(instance_id)
+            NovaClient._helper.servers.reboot(instance, reboot_type='HARD')
+            instance_name = self.get_instance_name(instance_id)
+            message = "NovaClient - Rebooting instance (%s) ..." % (instance_name)
+            logging.info(message)
+        except Exception as e:
+            message = "NovaClient - failed to hard reboot instance: ", str(e)
+            logging.error(message)
 
 if __name__ == "__main__":
     a = NovaClient.get_instance()

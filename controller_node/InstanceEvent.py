@@ -1,12 +1,5 @@
-#########################################################
-#Copyright (c) 2020-present, drliang219
-#All rights reserved.
-#
-#This source code is licensed under the BSD-style license found in the
-#LICENSE file in the root directory of this source tree. 
-##########################################################
-
 import libvirt
+
 
 class InstanceEvent(object):
 
@@ -25,11 +18,17 @@ class InstanceEvent(object):
     EVENT_FAILED = "Event_failed"
     EVENT_DESTROYED = "Event_destroyed"
     EVENT_MIGRATED = "Event_migrated"
+    EVENT_MIGRATING = "Event_migrating"
+    EVENT_STARTED = "Event_started"
+    EVENT_SHUTOFF = "Event_shutoff"
 
     _event_dictionary = {
         "Event_failed": [_event_string[5][2], _event_string[5][5]],
         "Event_destroyed": [_event_string[5][1]],
-        "Event_migrated": [_event_string[5][3]]
+        "Event_migrated": [_event_string[2][1], _event_string[0][0], _event_string[4][0], _event_string[4][1]],
+        "Event_migrating": [_event_string[5][3]],
+        "Event_started": [_event_string[2][0]],
+        "Event_shutoff": [_event_string[6][1]]
     }
 
     def __init__(self):

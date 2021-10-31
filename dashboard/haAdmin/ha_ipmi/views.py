@@ -1,5 +1,6 @@
 from django.utils.translation import ugettext_lazy as _
-from django.utils.datastructures import SortedDict
+#from django.utils.datastructures import SortedDict
+from collections import OrderedDict as SortedDict
 from django.core.urlresolvers import reverse_lazy
 from django.core.urlresolvers import reverse
 

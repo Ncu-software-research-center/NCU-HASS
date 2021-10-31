@@ -1,11 +1,5 @@
 #!/usr/bin/python
 #########################################################
-#Copyright (c) 2020-present, drliang219
-#All rights reserved.
-#
-#This source code is licensed under the BSD-style license found in the
-#LICENSE file in the root directory of this source tree. 
-#
 #:Date: 2017/12/13
 #:Version: 1
 #:Authors:
@@ -19,9 +13,7 @@
 #   Client can use function in Hass class directly
 ##########################################################
 
-
 import logging
-
 
 from RecoveryManager import RecoveryManager
 from ResourceManager import ResourceManager
@@ -35,7 +27,7 @@ class Hass(object):
         ResourceManager.init()
         self.Recovery_Manager = RecoveryManager()
 
-    def create_cluster(self, cluster_name, node_name_list=[]):
+    def create_cluster(self, cluster_name, node_name_list=[], layers_string=""):
         """
         The function for create a HA cluster. 
         You can either put node_name_list or cluster name only.
@@ -50,7 +42,7 @@ class Hass(object):
             {"code" : "1","message": message} -> fail.
         """
         try:
-            create_cluster_result = ResourceManager.create_cluster(cluster_name)
+            create_cluster_result = ResourceManager.create_cluster(cluster_name, layers_string)
             if create_cluster_result.code == "succeed":
                 if node_name_list != []:
                     add_node_result = ResourceManager.add_node(create_cluster_result.data.get("cluster_name"), node_name_list)
@@ -194,6 +186,29 @@ class Hass(object):
             logging.error("HASS--add Instance fail")
             return Response(code="failed", message="HASS--add instance fail, exception happens")
 
+    def update_instance_host(self, cluster_name, instance_id):
+        """
+        The function for update a instance host to HA cluster.
+        Put the cluster uuid and instance id to this function, it will update instance host to HA cluster.
+        Args:
+            cluster_name (str): cluster uuid.
+            instance_id (str): instance id.
+        Return:
+            (map) add instance result.
+            {"code" : "0","message": message} -> success.
+            {"code" : "1","message": message} -> fail.
+        """
+        try:
+            result = ResourceManager.update_instance_host(cluster_name, instance_id)
+            if result.code == 'failed':
+                logging.error("HASS--update Instance fail")
+                return result
+            logging.info("HASS--update instance success.")
+            return result
+        except:
+            logging.error("HASS--update Instance fail")
+            return Response(code="failed", message="HASS--update instance fail, exception happens")
+
     def delete_instance(self, cluster_name, instance_id):
         """
         The function for delete a instance from HA cluster. 
@@ -251,7 +266,7 @@ class Hass(object):
         except Exception as e:
             print str(e)
             logging.error(str(e))
-            logging.error("HASS--recover node %s fail" % fail_node_name)
+            logging.error("HASS--recover node/vm %s fail" % fail_node_name)
             return Response(code="failed", message="HASS--recover node %s fail" % fail_node_name)
 
     def update_db(self):

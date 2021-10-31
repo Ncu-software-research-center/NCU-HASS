@@ -9,7 +9,6 @@ from horizon.utils import filters
 
 from horizon import tables
 
-from openstack_dashboard import api
 
 
 POWER_STATES = {

@@ -16,7 +16,6 @@
 """
 Views for managing Neutron Routers.
 """
-import logging
 import random
 
 from django.core.urlresolvers import reverse
@@ -27,8 +26,6 @@ from horizon import exceptions
 from horizon import forms
 from horizon import messages
 
-import xmlrpclib
-
 from openstack_dashboard import api
 
 from openstack_dashboard.dashboards.project.instances \
@@ -36,8 +33,6 @@ from openstack_dashboard.dashboards.project.instances \
 
 from openstack_dashboard.REST.RESTClient import RESTClient
 server = RESTClient.get_instance()
-
-LOG = logging.getLogger(__name__)
 
 class Response(object):
 	def __init__(self, code, message=None, data=None):

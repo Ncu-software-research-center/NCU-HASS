@@ -1,4 +1,4 @@
-# NCU-HASS User Manual (ver. 4.1)
+# NCU-HASS User Manual (ver. 5.1)
 
 
 ## Table of Contents

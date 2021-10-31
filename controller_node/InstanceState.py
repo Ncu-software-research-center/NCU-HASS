@@ -1,0 +1,8 @@
+VM_HEALTHY   = "Healthy"
+VM_DELETED   = "Deleted"
+VM_DESTROYED = "Destroyed"
+VM_MIGRATED  = "Migrated"
+VM_MIGRATING = "Migrating"
+VM_STARTED   = "Started"
+VM_SHUTOFF   = "Shutoff"
+VM_EVACUATING = "evacuating"

@@ -1,11 +1,3 @@
-#########################################################
-#Copyright (c) 2020-present, drliang219
-#All rights reserved.
-#
-#This source code is licensed under the BSD-style license found in the
-#LICENSE file in the root directory of this source tree. 
-##########################################################
-
 from Authenticator import Authenticator
 import httplib
 import ConfigParser
@@ -35,8 +27,8 @@ class RESTClient(object):
 			RESTClient()
 		return RESTClient._instance
 
-	def create_cluster(self, name, node_list=[]):
-		data = {"cluster_name": name, "node_list":node_list}
+	def create_cluster(self, name, node_list=[], layers_string="111"):
+		data = {"cluster_name": name, "node_list":node_list, "layers_string":layers_string}
 		return self._get_HASS_response("/HASS/api/cluster", "POST", data)
 		
 
@@ -61,6 +53,10 @@ class RESTClient(object):
 	def add_instance(self, cluster_name, instance_id):
 		data = {"cluster_name": cluster_name, "instance_id": instance_id}
 		return self._get_HASS_response("/HASS/api/instance", "POST", data)
+
+	def update_instance_host(self, cluster_name, instance_id):
+		data = {"cluster_name": cluster_name, "instance_id": instance_id}
+		return self._get_HASS_response("/HASS/api/instance", "PUT", data)
 
 	def delete_instance(self, cluster_name, instance_id):
 		return self._get_HASS_response("/HASS/api/instance?cluster_name=%s&&instance_id=%s" %(cluster_name, instance_id), "DELETE")

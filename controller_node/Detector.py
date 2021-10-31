@@ -1,10 +1,4 @@
 #########################################################
-#Copyright (c) 2020-present, drliang219
-#All rights reserved.
-#
-#This source code is licensed under the BSD-style license found in the
-#LICENSE file in the root directory of this source tree. 
-#
 #:Date: 2017/12/13
 #:Version: 1
 #:Authors:
@@ -16,14 +10,13 @@
 #	This is a class which contains detect functions.
 ##########################################################
 
-
 import subprocess
 import FailureType
 import time
 import logging
 import ConfigParser
 from IPMIModule import IPMIModule
-
+import IPMIConf
 
 class Detector(object):
     def __init__(self, node):
@@ -50,20 +43,48 @@ class Detector(object):
         if not self.ipmi_status:
             return FailureType.DETECTOR_NOT_SUPPORTED
         status = self.ipmi_module.get_power_status(self.node)
-        if status == "OK":
+        if status == IPMIConf.LAYER_HEALTHY:
             return FailureType.HEALTH
         elif status == FailureType.DETECTOR_FAILED:
             return status
-        else :
+        else:
             return FailureType.POWER_FAIL
+
+    def check_hardware_status(self):
+        if not self.ipmi_status:
+            return FailureType.DETECTOR_NOT_SUPPORTED
+        status = self.ipmi_module.get_hardware_status(self.node)
+        if status == IPMIConf.LAYER_HEALTHY:
+            return FailureType.HEALTH
+        elif status == IPMIConf.LAYER_FAILED:
+            return FailureType.HARDWARE_FAIL
+        elif status == FailureType.DETECTOR_NOT_SUPPORTED:
+            return FailureType.DETECTOR_NOT_SUPPORTED
+        else:
+            return FailureType.DETECTOR_FAILED
 
     def check_os_status(self):
         if not self.ipmi_status:
             return FailureType.DETECTOR_NOT_SUPPORTED
         status = self.ipmi_module.get_os_status(self.node)
-        if status == "OK":
+        if status == IPMIConf.LAYER_HEALTHY:
             return FailureType.HEALTH
         elif status == FailureType.DETECTOR_FAILED:
             return status
-        else :
+        else:
             return FailureType.OS_FAIL
+
+    def check_network_transient_fault(self):
+        network_transient_time = int(self.config.get("default", "network_transient_time"))
+        status = FailureType.NETWORK_FAIL
+        while network_transient_time > 0:
+            try:
+                status = self.check_network_status()
+                if status == FailureType.HEALTH:
+                    break
+                else:
+                    network_transient_time -= 1
+            except subprocess.CalledProcessError:
+                network_transient_time -= 1
+                time.sleep(1)
+        return status

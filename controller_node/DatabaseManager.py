@@ -1,10 +1,4 @@
 #########################################################
-#Copyright (c) 2020-present, drliang219
-#All rights reserved.
-#
-#This source code is licensed under the BSD-style license found in the
-#LICENSE file in the root directory of this source tree. 
-#
 #:Date: 2017/12/13
 #:Version: 1
 #:Authors:
@@ -77,6 +71,7 @@ class DatabaseManager(object):
                                 CREATE TABLE IF NOT EXISTS ha_cluster 
                                 (
                                 cluster_name char(18),
+                                protected_layers_string char(12),
                                 PRIMARY KEY(cluster_name)
                                 );
                                 """)
@@ -135,7 +130,9 @@ class DatabaseManager(object):
                         instance_list.append(instance["instance_id"])
 
                     cluster_name = cluster["cluster_name"]
-                    exist_cluster.append({"cluster_name": cluster_name, "node_list": node_list,
+                    protected_layers_string = cluster["protected_layers_string"]
+                    logging.info("dbmanager, sync_from_db- {}: {}".format(cluster_name, protected_layers_string))
+                    exist_cluster.append({"cluster_name": cluster_name, "protected_layers_string": protected_layers_string, "node_list": node_list,
                                           "instance_list": instance_list})
                     # cluster_manager.createCluster(cluster_name = name , cluster_id = cluster_id)
                     # cluster_manager.addNode(cluster_id, node_list)
@@ -154,7 +151,7 @@ class DatabaseManager(object):
             try:
                 for cluster_name, cluster in cluster_list.items():
                     # sync cluster
-                    data = {"cluster_name": cluster.name}
+                    data = {"cluster_name": cluster.name, "protected_layers_string": cluster.protected_layers_string}
                     self._write_db("ha_cluster", data)
                     # sync node
                     node_list = cluster.get_node_list()
@@ -176,7 +173,7 @@ class DatabaseManager(object):
     def _write_db(self, dbName, data):
         if self._check_db() :
             if dbName == "ha_cluster":
-                format = "INSERT INTO ha_cluster (cluster_name) VALUES (%(cluster_name)s);"
+                format = "INSERT INTO ha_cluster (cluster_name,protected_layers_string) VALUES (%(cluster_name)s, %(protected_layers_string)s);"
             elif dbName == "ha_node":
                 format = "INSERT INTO ha_node (node_name,below_cluster) VALUES (%(node_name)s, %(below_cluster)s);"
             elif dbName == "ha_instance":

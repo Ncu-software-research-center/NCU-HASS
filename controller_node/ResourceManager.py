@@ -1,10 +1,4 @@
 #########################################################
-#Copyright (c) 2020-present, drliang219
-#All rights reserved.
-#
-#This source code is licensed under the BSD-style license found in the
-#LICENSE file in the root directory of this source tree. 
-#
 #:Date: 2017/12/13
 #:Version: 1
 #:Authors:
@@ -35,7 +29,7 @@ class ResourceManager():
         ResourceManager._sync_from_database()
 
     @staticmethod
-    def create_cluster(cluster_name):
+    def create_cluster(cluster_name, layers_string):
         if ResourceManager._is_name_overlapping(cluster_name):
             message = "ResourceManager - cluster name overlapping"
             # result = {"code": "1","cluster_name":cluster_name, "message": message}
@@ -46,7 +40,7 @@ class ResourceManager():
             return result
         else:
             logging.info("ResourceManager - cluster name is not overlapping")
-            result = ResourceManager._add_to_cluster_list(cluster_name)
+            result = ResourceManager._add_to_cluster_list(cluster_name, layers_string)
             ResourceManager.sync_to_database()
             return result
 
@@ -82,7 +76,7 @@ class ResourceManager():
                                           data={"cluster_name": cluster_name})
                 if result == None:
                     message = "delete cluster success. The cluster is deleted. (cluster_name = %s)" % cluster_name
-                    logging.info(message)
+                    #logging.info(message)
                     # result = {"code": "0", "cluster_name": cluster_name, "message": message}
                     result = Response(code="succeed",
                                       message=message,
@@ -114,7 +108,6 @@ class ResourceManager():
         tmp = list(set(node_name_list)) # remove duplicate
         for node_name in tmp[:]:
             if not ResourceManager._check_node_overlapping_for_all_cluster(node_name):
-                print "%s is already in a HA cluster. " % node_name
                 logging.error("%s is already in a HA cluster. " % node_name)
                 message += "%s is overlapping node" % node_name
                 tmp.remove(node_name)
@@ -134,7 +127,7 @@ class ResourceManager():
         else:
             try:
                 result = cluster.add_node(tmp)
-                logging.info("ResourceManager--add node success.cluster name is %s ,node is %s " % (cluster_name, tmp))
+                #logging.info("ResourceManager--add node result: {}".format(str(result)))
                 ResourceManager.sync_to_database()
                 return result
             except Exception as e:
@@ -159,8 +152,7 @@ class ResourceManager():
         else:
             try:
                 result = cluster.delete_node(node_name)
-                logging.info(
-                    "ResourceManager-- delete node success ,cluster name is %s node is %s" % (cluster_name, node_name))
+                #logging.info("ResourceManager-- delete node success ,cluster name is %s node is %s" % (cluster_name, node_name))
                 ResourceManager.sync_to_database()
                 return result
             except Exception as e:
@@ -186,7 +178,6 @@ class ResourceManager():
                 return result
             nodelist = cluster.get_all_node_info()
             message = "ResourceManager-list_node--get all node info finish"
-            logging.info(message)
             result = Response(code="succeed",
                               message=message,
                               data={"cluster_name": cluster_name, "nodeList": nodelist})
@@ -220,9 +211,7 @@ class ResourceManager():
                 if result.code == 'failed':
                     return result
                 ResourceManager.sync_to_database()
-                logging.info(
-                    "ResourceManager--Add instance success , instance_id : %s , cluster_name : %s" % (
-                    instance_id, cluster_name))
+                #logging.info("ResourceManager--Add instance success , instance_id : %s , cluster_name : %s" % (instance_id, cluster_name))
                 return result
             except Exception as e:
                 print str(e)
@@ -249,14 +238,39 @@ class ResourceManager():
             try:
                 result = cluster.delete_instance(instance_id)
                 ResourceManager.sync_to_database()
-                logging.info("ResourceManager--delete instance success")
+                #logging.info("ResourceManager--delete instance success")
                 return result
             except Exception as e:
-                #logging.error(str(e))
-                print str(e)
                 message = "ResourceManager--delete instance failed. this instance is not being protected (instance_id = %s)" % instance_id +str(e)
                 logging.error(message)
                 # result = {"code": "1", "cluster_name":cluster_name, "message":message}
+                result = Response(code="failed",
+                                  message=message,
+                                  data={"cluster_name": cluster_name})
+                return result
+
+    @staticmethod
+    def update_instance_host(cluster_name, instance_id):
+        cluster = ResourceManager.get_cluster(cluster_name)
+        if not cluster:
+            message = "ResourceManager--Update the instance to cluster failed. The cluster is not found. (cluster_name = %s)" % cluster_name
+            # result = {"code": "1", "cluster_name":cluster_name, "message":message}
+            result = Response(code="failed",
+                              message=message,
+                              data={"cluster_name": cluster_name})
+            return result
+        else:
+            try:
+                result = cluster.update_instance_host(instance_id)
+                if result.code == 'failed':
+                    return result
+                ResourceManager.sync_to_database()
+                #logging.info("ResourceManager--Update instance success , instance_id : %s , cluster_name : %s" % (instance_id, cluster_name))
+                return result
+            except Exception as e:
+                message = "ResourceManager--Update the instacne fail.instance_id : %s , cluster_name : %s " % (instance_id, cluster_name) + str(e)
+                logging.error(message)
+                # result = {"code": "1", "cluster_name": cluster_name, "message": message}
                 result = Response(code="failed",
                                   message=message,
                                   data={"cluster_name": cluster_name})
@@ -272,7 +286,7 @@ class ResourceManager():
                             data={"cluster_name": cluster_name})
         try:
             instance_list = cluster.get_all_instance_info()
-            logging.info("ResourceManager--list_instance,getInstanceList success,instanceList is %s" % instance_list)
+            #logging.info("ResourceManager--list_instance,getInstanceList success,instanceList is %s" % instance_list)
             result = Response(code="succeed",
                               message=None,
                               data={"instanceList": instance_list})
@@ -281,23 +295,23 @@ class ResourceManager():
             logging.error("ResourceManager--list_instance,getInstanceList fail")
 
     @staticmethod
-    def _add_to_cluster_list(cluster_name):
+    def _add_to_cluster_list(cluster_name, layers_string):
         try:
-            cluster = Cluster(cluster_name)
+            cluster = Cluster(cluster_name, layers_string)
             ResourceManager._cluster_dict[cluster_name] = cluster
-            message = "ResourceManager -sync to db -- create_cluster._add_to_cluster_list success, cluster_name : %s" % cluster_name
+            message = "ResourceManager -sync to db -- create_cluster._add_to_cluster_list success, cluster_name : %s , protected_layers_string : %s" %(cluster_name,layers_string)
             logging.info(message)
             result = Response(code="succeed",
                                message=message,
-                               data={"cluster_name": cluster_name})
+                               data={"cluster_name": cluster_name, "protected_layers_string": layers_string})
             return result            
         except Exception as e:
-            message = "ResourceManager - create_cluster._add_to_cluster_list fail,cluster_name : %s" % cluster_name + str(e)
+            message = "ResourceManager - create_cluster._add_to_cluster_list fail,cluster_name : %s, protected_layers_string : %s" %(cluster_name,layers_string) + str(e)
             logging.error(message)
             # result = {"code": "1","cluster_name":cluster_name, "message": message}
             result = Response(code="failed",
                               message=message,
-                              data={"cluster_name": cluster_name})
+                              data={"cluster_name": cluster_name, "protected_layers_string": layers_string})
             return result
 
     @staticmethod
@@ -347,7 +361,7 @@ class ResourceManager():
         try:
             exist_cluster = ResourceManager._db.sync_from_db()
             for cluster in exist_cluster:
-                ResourceManager.create_cluster(cluster["cluster_name"])
+                ResourceManager.create_cluster(cluster["cluster_name"], cluster["protected_layers_string"])
                 if cluster["node_list"] != []:
                     ResourceManager.add_node(cluster["cluster_name"], cluster["node_list"])
                 for instance in cluster["instance_list"]:

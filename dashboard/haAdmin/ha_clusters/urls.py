@@ -1,4 +1,4 @@
-from django.conf.urls import patterns
+#from django.conf.urls import patterns
 from django.conf.urls import url
 
 from openstack_dashboard.dashboards.haAdmin.ha_clusters.views \
@@ -12,8 +12,8 @@ from openstack_dashboard.dashboards.haAdmin.ha_clusters.views \
 
 CLUSTERS = r'^(?P<cluster_name>[^/]+)/%s$'
 
-urlpatterns = patterns(
-    'openstack_dashboard.dashboards.haAdmin.ha_clusters.views',
+urlpatterns = [#patterns(
+    #'openstack_dashboard.dashboards.haAdmin.ha_clusters.views',
     url(r'^create/$',
         CreateView.as_view(), name='create'),
     url(r'^(?P<cluster_name>[^/]+)/$',
@@ -21,4 +21,5 @@ urlpatterns = patterns(
     url(r'^(?P<cluster_name>[^/]+)/add_node/$',
         AddView.as_view(), name='add_node'),
     url(r'^$', IndexView.as_view(), name='index'),
-)
+#)
+]

@@ -1,10 +1,4 @@
 #########################################################
-#Copyright (c) 2020-present, drliang219
-#All rights reserved.
-#
-#This source code is licensed under the BSD-style license found in the
-#LICENSE file in the root directory of this source tree. 
-#
 #:Date: 2017/12/13
 #:Version: 1
 #:Authors:
@@ -16,7 +10,6 @@
 #   This is a class maintains node data structure.
 ##########################################################
 
-
 from DetectionThread import DetectionThread
 from IPMIModule import IPMIModule
 import ConfigParser
@@ -25,10 +18,10 @@ import logging
 import paramiko
 import time
 import FailureType
-
+import Queue
 
 class Node(object):
-    def __init__(self, name, cluster_name):
+    def __init__(self, name, cluster_name, protected_layers_string):
         self.name = name
         self.cluster_name = cluster_name
         self.ipmi = IPMIModule()
@@ -36,9 +29,12 @@ class Node(object):
         self.detection_thread = None
         self.config = ConfigParser.RawConfigParser()
         self.config.read('/etc/hass.conf')
+        self.protected_layers_string = protected_layers_string
+        self.__instance_update_queue = Queue.Queue()
         self._init_detection_thread()
         self.client = self._create_ssh_client()
         self.status = FailureType.HEALTH
+        
 
     def start(self):
         return self.ipmi.start_node(self.name)
@@ -80,7 +76,6 @@ class Node(object):
                 logging.error("Node - failed connect to node twice, failed to run command")
                 return
         
-
     def _create_ssh_client(self, default_timeout=1):
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -105,7 +100,8 @@ class Node(object):
         cluster_name = self.cluster_name
         node = self
         polling_interval = float(self.config.get("detection", "polling_interval"))
-        self.detection_thread = DetectionThread(cluster_name, node, polling_interval)
+        protected_layers_string = self.protected_layers_string
+        self.detection_thread = DetectionThread(cluster_name, node, polling_interval, protected_layers_string, self.__instance_update_queue)
 
     def delete_detection_thread(self):
         self.detection_thread.stop()
@@ -115,8 +111,12 @@ class Node(object):
             "node_name":self.name, 
             "below_cluster_name": self.cluster_name,
             "ipmi_enable" : self.ipmi_status,
-            "status" : self.status
+            "status" : self.status,
+            "protected_layers_string" : self.protected_layers_string
         }
+
+    def get_name(self):
+        return self.name
 
     def get_status(self):
         return self.status
@@ -124,17 +124,16 @@ class Node(object):
     def set_status(self, new_status):
         self.status = new_status
 
-    def send_update_instance(self):
-        port = int(self.config.get("detection", "polling_port"))
+    def get_layer_strings(self):
+        return self.protected_layers_string
+
+    def set_layer_strings(self, new_layer_strings):
+        self.protected_layers_string = new_layer_strings
+
+    def send_update_instance(self, action, instance_name, provider_network = None, instance_id = None):
         try:
-            logging.info("Init update instance socket to %s" % self.name)
-            so = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # print 'one'
-            so.settimeout(10)
-            so.connect((self.name, port))
-            # print 'two'
-            so.send("update instance")
-            so.close()
+            update_information = [action, instance_name, provider_network, instance_id]
+            self.__instance_update_queue.put(update_information)
         except Exception as e:
             logging.error("send updata instance fail %s" % str(e))
 
@@ -161,8 +160,8 @@ class Node(object):
                 print "sock close"
 
 if __name__ == "__main__":
-    a = Node("compute1", "test")
-    a.send_update_instance()
+    a = Node("compute1", "test", "111")
+    # a.send_update_instance()
     # b = Instance("xx", "instance-0000023e", "compute2")
     # # print a.undefineInstance(b)
     # i, out, err = a._remote_exec("echo 123")

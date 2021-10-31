@@ -4,7 +4,7 @@ After=libvirt-bin.service
 
 [Service]
 WorkingDirectory=/mnt/drbd/HASS/
-ExecStart=/usr/bin/python Hass.py
+ExecStart=/usr/bin/python HASS_RESTful.py
 Restart=on-failure
 
 [Install]

@@ -1,9 +1,9 @@
 from django.utils.translation import ugettext_lazy as _
-from django.utils.datastructures import SortedDict
+#from django.utils.datastructures import SortedDict
+from collections import OrderedDict as SortedDict
 from django.core.urlresolvers import reverse_lazy
 from django.core.urlresolvers import reverse
 
-from horizon import tabs
 from horizon import exceptions
 from horizon import tables
 from horizon import forms
@@ -14,7 +14,6 @@ from openstack_dashboard.dashboards.haProject.ha_instances import tables as proj
 from openstack_dashboard.dashboards.haProject.ha_instances\
     import forms as project_forms
 
-import xmlrpclib
 
 from openstack_dashboard.REST.RESTClient import RESTClient
 server = RESTClient.get_instance()

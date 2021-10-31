@@ -1,10 +1,4 @@
 #########################################################
-#Copyright (c) 2020-present, drliang219
-#All rights reserved.
-#
-#This source code is licensed under the BSD-style license found in the
-#LICENSE file in the root directory of this source tree. 
-#
 #:Date: 2017/12/13
 #:Version: 1
 #:Authors:
@@ -24,17 +18,20 @@ import ConfigParser
 import time
 import subprocess
 
-
 class RecoveryManager(object):
     def __init__(self):
         self.config = ConfigParser.RawConfigParser()
         self.config.read('/etc/hass.conf')
         self.recover_function = {FailureType.NETWORK_FAIL: self._recover_network_isolation,
+                                 FailureType.HARDWARE_FAIL: self._recover_hardware_fault,
                                  FailureType.POWER_FAIL: self._recover_power_off,
-                                 FailureType.OS_FAIL: self._recover_os_hanged}
+                                 FailureType.OS_FAIL: self._recover_os_hanged,
+                                 FailureType.INSTANCE_POWER_FAIL: self._recover_instance_crash,
+                                 FailureType.INSTANCE_OS_FAIL: self._recover_instance_os_hanged,
+                                 FailureType.INSTANCE_NETWORK_FAIL: self._recover_instance_network_isolation}
 
-    def recover(self, fail_type, cluster_name, fail_node_name):
-        return self.recover_function[fail_type](cluster_name, fail_node_name)
+    def recover(self, fail_type, cluster_name, failed_target_name):
+        return self.recover_function[fail_type](cluster_name, failed_target_name)
 
     def _recover_os_hanged(self, cluster_name, fail_node_name):
         cluster = ResourceManager.get_cluster(cluster_name)
@@ -61,43 +58,67 @@ class RecoveryManager(object):
         print "end recovery vm"
         return self._recover_node_by_start(fail_node)
 
+    def _recover_hardware_fault(self, cluster_name, fail_node_name):
+        cluster = ResourceManager.get_cluster(cluster_name)
+        if not cluster:
+            logging.error("RecoverManager : cluster not found")
+            return
+        fail_node = cluster.get_node_by_name(fail_node_name)
+        logging.info("RecoverManager : start to recover the hardware fault of node %s" % (fail_node))
+        self._recover_vm(cluster, fail_node)
+        return self._recover_node_by_reboot(fail_node)
+
     def _recover_network_isolation(self, cluster_name, fail_node_name):
         cluster = ResourceManager.get_cluster(cluster_name)
         if not cluster:
             logging.error("RecoverManager : cluster not found")
             return
         fail_node = cluster.get_node_by_name(fail_node_name)
+        logging.info("RecoverManager : start to recover the network isolation of node %s" % (fail_node))
+        self._recover_vm(cluster, fail_node)
+        return self._recover_node_by_reboot(fail_node)
 
-        network_transient_time = int(self.config.get("default", "network_transient_time"))
-        second_chance = FailureType.HEALTH
-        detector = Detector(fail_node)
-        while network_transient_time > 0:
-            try:
-                status = detector.check_network_status()
-                if status == FailureType.HEALTH:
-                    second_chance = FailureType.HEALTH
-                    break
-                else :
-                    print "network unreachable for %s" % fail_node_name
-                    network_transient_time -= 1
-                    second_chance = FailureType.NETWORK_FAIL
+    # output: True/False, None. True means success, False means fail, None means that it cannot find something, such as a cluster or instance.
+    def _recover_instance_crash(self, cluster_name, failed_instance_name):
+        cluster = ResourceManager.get_cluster(cluster_name)
+        if not cluster:
+            logging.warning("RecoverManager, _recover_instance_crash: cluster not found")
+            return
+        failed_instance = cluster.get_protected_instance_by_instance_name(failed_instance_name)
+        if failed_instance == None:
+            logging.warning("RecoverManager, _recover_instance_crash: failed instance not found")
+            return
+        logging.info("RecoverManager : start to recover the instance crash of instance %s" % (failed_instance_name))
+        result = failed_instance.recover_instance_crash()
+        return result
 
-            except subprocess.CalledProcessError:
-                print "network unreachable for %s" % fail_node_name
-                network_transient_time -= 1
-                time.sleep(1)
-                second_chance = FailureType.NETWORK_FAIL
-        if second_chance == FailureType.HEALTH:
-            print "The network status of %s return to health" % fail_node.name
-            return True
-        else:
-            print "network still unreachable, start recovery."
-            print "fail node is %s, network fail" % fail_node.name
-            logging.info("fail node is %s, network fail", fail_node.name)
-            print "start recovery vm"
-            self._recover_vm(cluster, fail_node)
-            print "end recovery vm"
-            return self._recover_node_by_reboot(fail_node)
+    # output: True/False, None. True means success, False means fail, None means that it cannot find something, such as a cluster or instance.
+    def _recover_instance_os_hanged(self, cluster_name, failed_instance_name):
+        cluster = ResourceManager.get_cluster(cluster_name)
+        if not cluster:
+            logging.warning("RecoverManager, _recover_instance_os_hanged: cluster not found")
+            return
+        failed_instance = cluster.get_protected_instance_by_instance_name(failed_instance_name)
+        if failed_instance == None:
+            logging.warning("RecoverManager, _recover_instance_os_hanged: failed instance not found")
+            return
+        logging.info("RecoverManager : start to recover the os hanged of instance %s" % (failed_instance_name))
+        result = failed_instance.recover_instance_os_hanged()
+        return result
+
+    # output: True/False, None. True means success, False means fail, None means that it cannot find something, such as a cluster or instance.
+    def _recover_instance_network_isolation(self, cluster_name, failed_instance_name):
+        cluster = ResourceManager.get_cluster(cluster_name)
+        if not cluster:
+            logging.warning("RecoverManager, _recover_instance_network_isolation: cluster not found")
+            return
+        failed_instance = cluster.get_protected_instance_by_instance_name(failed_instance_name)
+        if failed_instance == None:
+            logging.warning("RecoverManager, _recover_instance_network_isolation: failed instance not found")
+            return
+        logging.info("RecoverManager : start to recover the network isolation of instance %s" % (failed_instance_name))
+        result = failed_instance.recover_instance_network_isolation()
+        return result
 
     def _recover_vm(self, cluster, fail_node):
         if len(cluster.get_node_list()) < 2:
@@ -147,10 +168,13 @@ class RecoveryManager(object):
 
         print "update instance"
         logging.info("update instance")
-        cluster.update_instance()
+        # update information of instances that are evacuated
+        for instance in protected_instance_list:
+            cluster.update_instance_host(instance.get_id(), True)
 
     def _recover_node_by_reboot(self, fail_node):
         print "start recover node by reboot"
+        logging.info("start recover node by reboot")
         result = fail_node.reboot()
         print "boot node result : %s" % result.message
         message = "RecoveryManager recover "
@@ -170,15 +194,16 @@ class RecoveryManager(object):
 
     def _recover_node_by_start(self, fail_node):
         print "start recover node by start"
+        logging.info("start recover node by start")
         result = fail_node.start()
         print "boot node result : %s" % result.message
-        message = "RecoveryManager recover"
+        message = "RecoveryManager, _recover_node_by_start - "
         if result.code == "succeed":
             logging.info(message + result.message)
             boot_up = self._check_node_boot_success(fail_node)
             if boot_up:
                 print "Node %s recovery finished." % fail_node.name
-                logging.info("Node %s recovery finished." % fail_node.name)
+                logging.info("RecoveryManager, _recover_node_by_start - node %s recovery (start node) successed." % fail_node.name)
                 return True
             else:
                 logging.error(message + "Can not start node %s successfully", fail_node.name)
