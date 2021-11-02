@@ -26,7 +26,7 @@ Through NCU-HASS, users can create an abstract cluster and add the computing nod
 NCU-HASS will not modify any OpenStack source code, so as long as OpenStack does not modify the API call method, the OpenStack upgrade will not affect the use of NCU-HASS.
 
 ### System Architecture
-![](doc/picture/system architecture.png)
+![system architecture](doc/picture/system\%20architecture.png)
 
 ### Requirement
 The required hardware / software and tested versions are given below:
